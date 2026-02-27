@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import CORS_ORIGINS
 from app.database import init_db
-from app.routers import data_ingestion, predictions, recommendations, simulation
+from app.routers import data_ingestion, predictions, recommendations, simulation, analysis
 
 app = FastAPI(
     title="YatriLounge API",
@@ -26,6 +26,7 @@ app.include_router(data_ingestion.router)
 app.include_router(predictions.router)
 app.include_router(recommendations.router)
 app.include_router(simulation.router)
+app.include_router(analysis.router)
 
 
 @app.on_event("startup")

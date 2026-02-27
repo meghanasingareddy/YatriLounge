@@ -6,6 +6,7 @@ import MetricsPanel from './components/MetricsPanel';
 import StaffingTable from './components/StaffingTable';
 import MenuCards from './components/MenuCards';
 import WhatIfSimulator from './components/WhatIfSimulator';
+import HistoricalAnalysis from './components/HistoricalAnalysis';
 import {
     uploadFlights,
     uploadLoungeEntries,
@@ -225,6 +226,17 @@ export default function App() {
                                 </h2>
                             </div>
                             <WhatIfSimulator />
+                        </section>
+
+                        {/* Historical Data Analysis */}
+                        <section className="section" id="historical-section">
+                            <div className="section-header">
+                                <h2 className="section-title">
+                                    <span className="section-icon">📜</span>
+                                    Historical Data Analysis
+                                </h2>
+                            </div>
+                            <HistoricalAnalysis />
                         </section>
                     </>
                 )}

@@ -41,4 +41,7 @@ export const simulateAddFlight = (flight) =>
 export const exportPDF = () =>
     api.get('/export/pdf', { responseType: 'blob' });
 
+// ===== Historical Analysis =====
+export const getHistoricalAnalysis = () => api.get('/analysis/historical');
+
 export default api;

@@ -16,6 +16,39 @@ Airport lounges often face **unpredictable crowd surges** that lead to:
 
 ---
 
+## 🎯 Key Objectives
+
+| # | Objective | How YatriLounge Achieves It |
+|---|-----------|---------------------------|
+| 1 | **Predict lounge crowd levels accurately** | Gradient Boosting ML model trained on flight + lounge data |
+| 2 | **Optimize staffing for peak hours** | Automatic staff recommendations (2–8 staff based on crowd) |
+| 3 | **Reduce food waste through better planning** | Menu optimizer calculates exact snack/beverage quantities |
+| 4 | **Improve guest experience** | 6-hour forecasting prevents overcrowding before it happens |
+
+---
+
+## 📋 Requirements
+
+| Category | Requirement | Status |
+|----------|------------|--------|
+| **Data** | Flight schedule data integration (CSV upload) | ✅ Implemented |
+| **ML** | Time-series forecasting model (Gradient Boosting) | ✅ Implemented |
+| **Logic** | Staffing recommendation engine | ✅ Implemented |
+| **Logic** | Menu quantity optimization (60/40 split + buffer) | ✅ Implemented |
+
+---
+
+## 📦 Deliverables
+
+| # | Deliverable | Description |
+|---|------------|-------------|
+| 1 | **Peak-hour prediction agent** | ML model that forecasts lounge crowd for the next 6 hours |
+| 2 | **6-hour forecast dashboard** | Interactive React dashboard with Plotly charts, staffing tables, and menu cards |
+| 3 | **Staffing recommendation report** | Auto-generated staffing plan + downloadable PDF report |
+| 4 | **Historical data analysis** | Feature engineering on 30 days of flight & lounge data with model evaluation metrics (MAE/RMSE) |
+
+---
+
 ## 💡 How It Works (Simple Explanation)
 
 ```
