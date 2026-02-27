@@ -1,12 +1,13 @@
 """Historical data analysis service."""
 import pandas as pd
 import numpy as np
+from datetime import date
 from sqlalchemy.orm import Session
 from app.models import FlightSchedule, LoungeEntry
 
 
-def analyze_historical_data(db: Session) -> dict:
-    """Perform comprehensive historical analysis on uploaded data."""
+def analyze_historical_data(db: Session, start_date: date = None, end_date: date = None) -> dict:
+    """Perform comprehensive historical analysis on uploaded data, optionally filtered by date range."""
     # Load lounge entries
     lounge_entries = db.query(LoungeEntry).all()
     if not lounge_entries:
@@ -17,10 +18,24 @@ def analyze_historical_data(db: Session) -> dict:
         "entries_per_hour": le.entries_per_hour,
     } for le in lounge_entries])
     lounge_df["timestamp"] = pd.to_datetime(lounge_df["timestamp"])
+    lounge_df["date"] = lounge_df["timestamp"].dt.date
+
+    # Get available date range before filtering
+    available_start = str(lounge_df["date"].min())
+    available_end = str(lounge_df["date"].max())
+
+    # Filter by date range if provided
+    if start_date:
+        lounge_df = lounge_df[lounge_df["date"] >= start_date]
+    if end_date:
+        lounge_df = lounge_df[lounge_df["date"] <= end_date]
+
+    if lounge_df.empty:
+        raise ValueError("No data found for the selected date range.")
+
     lounge_df["hour"] = lounge_df["timestamp"].dt.hour
     lounge_df["day_of_week"] = lounge_df["timestamp"].dt.dayofweek
     lounge_df["day_name"] = lounge_df["timestamp"].dt.day_name()
-    lounge_df["date"] = lounge_df["timestamp"].dt.date
     lounge_df["is_weekend"] = lounge_df["day_of_week"] >= 5
 
     # Load flights
@@ -36,17 +51,22 @@ def analyze_historical_data(db: Session) -> dict:
         flight_df["arrival_time"] = pd.to_datetime(flight_df["arrival_time"])
         flight_df["hour"] = flight_df["arrival_time"].dt.hour
         flight_df["date"] = flight_df["arrival_time"].dt.date
+        # Filter flights by same date range
+        if start_date:
+            flight_df = flight_df[flight_df["date"] >= start_date]
+        if end_date:
+            flight_df = flight_df[flight_df["date"] <= end_date]
 
     # --- Analysis Results ---
 
-    # 1. Hourly average pattern (which hours are busiest on average)
+    # 1. Hourly average pattern
     hourly_avg = lounge_df.groupby("hour")["entries_per_hour"].mean().round(1)
     hourly_pattern = [
         {"hour": int(h), "avg_entries": float(v)}
         for h, v in hourly_avg.items()
     ]
 
-    # 2. Daily pattern (which days of the week are busiest)
+    # 2. Daily pattern
     day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     daily_avg = lounge_df.groupby("day_name")["entries_per_hour"].mean().round(1)
     daily_pattern = [
@@ -54,11 +74,11 @@ def analyze_historical_data(db: Session) -> dict:
         for d in day_order
     ]
 
-    # 3. Weekend vs Weekday comparison
+    # 3. Weekend vs Weekday
     weekend_avg = float(lounge_df[lounge_df["is_weekend"]]["entries_per_hour"].mean()) if lounge_df["is_weekend"].any() else 0
-    weekday_avg = float(lounge_df[~lounge_df["is_weekend"]]["entries_per_hour"].mean())
+    weekday_avg = float(lounge_df[~lounge_df["is_weekend"]]["entries_per_hour"].mean()) if (~lounge_df["is_weekend"]).any() else 0
 
-    # 4. Peak hours (top 5 busiest hours overall)
+    # 4. Peak hours (top 5)
     top_hours = lounge_df.nlargest(5, "entries_per_hour")[["timestamp", "entries_per_hour"]]
     peak_records = [
         {"timestamp": row["timestamp"].strftime("%Y-%m-%d %H:%M"), "entries": int(row["entries_per_hour"])}
@@ -73,7 +93,7 @@ def analyze_historical_data(db: Session) -> dict:
         for _, row in daily_totals.iterrows()
     ]
 
-    # 6. Airline distribution (flights)
+    # 6. Airline distribution
     airline_stats = []
     if not flight_df.empty:
         airline_counts = flight_df.groupby("airline").agg(
@@ -114,4 +134,8 @@ def analyze_historical_data(db: Session) -> dict:
         "peak_records": peak_records,
         "daily_trend": daily_trend,
         "airline_stats": airline_stats,
+        "available_range": {
+            "start": available_start,
+            "end": available_end,
+        },
     }

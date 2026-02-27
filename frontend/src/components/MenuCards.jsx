@@ -7,7 +7,6 @@ export default function MenuCards({ menu }) {
         <div className="card">
             <div className="section-header" style={{ marginBottom: 14 }}>
                 <h3 className="section-title">
-                    <span className="section-icon">🍽️</span>
                     Menu Optimization
                 </h3>
             </div>
@@ -35,8 +34,8 @@ export default function MenuCards({ menu }) {
                     <tr>
                         <th>Hour</th>
                         <th>Crowd</th>
-                        <th>🍿 Snacks</th>
-                        <th>🥤 Beverages</th>
+                        <th>Snacks</th>
+                        <th>Beverages</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -19,7 +19,7 @@ export default function Header({ modelTrained, onRefresh, refreshing }) {
     return (
         <header className="header">
             <div className="header-brand">
-                <span className="header-logo">✈️</span>
+                <span className="header-logo">YL</span>
                 <div>
                     <div className="header-title">YatriLounge</div>
                     <div className="header-subtitle">Intelligent Airport Lounge Peak-Hour Predictor</div>
@@ -35,10 +35,10 @@ export default function Header({ modelTrained, onRefresh, refreshing }) {
                 {modelTrained && (
                     <>
                         <button className="btn btn-secondary" onClick={onRefresh} disabled={refreshing}>
-                            {refreshing ? <span className="spinner"></span> : '🔄'} Refresh
+                            {refreshing ? <span className="spinner"></span> : ''} Refresh
                         </button>
                         <button className="btn btn-primary" onClick={handleExport}>
-                            📄 Export PDF
+                            Export PDF
                         </button>
                     </>
                 )}

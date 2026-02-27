@@ -1,5 +1,6 @@
 """Prediction API routes."""
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -25,10 +26,17 @@ async def train(db: Session = Depends(get_db)):
 
 
 @router.get("/forecast", response_model=ForecastResponse)
-async def forecast(db: Session = Depends(get_db)):
-    """Get next 6-hour crowd predictions."""
+async def forecast(
+    start_time: str = Query(None, description="Start time for forecast in ISO format (YYYY-MM-DDTHH:MM)"),
+    db: Session = Depends(get_db),
+):
+    """Get 6-hour crowd predictions from a given start time (or now if not specified)."""
     try:
-        results = forecast_next_6_hours(db)
+        base_time = None
+        if start_time:
+            base_time = datetime.fromisoformat(start_time)
+
+        results = forecast_next_6_hours(db, base_time=base_time)
         metrics = None
         try:
             metrics_data = load_metrics()

@@ -9,7 +9,6 @@ export default function StaffingTable({ staffing }) {
         <div className="card">
             <div className="section-header" style={{ marginBottom: 14 }}>
                 <h3 className="section-title">
-                    <span className="section-icon">👥</span>
                     Staffing Recommendations
                 </h3>
                 <div className="stat-card" style={{ padding: '8px 16px', flexDirection: 'row', gap: 10, alignItems: 'center' }}>
@@ -36,11 +35,11 @@ export default function StaffingTable({ staffing }) {
                             </td>
                             <td>
                                 {s.recommended_staff === peakStaff ? (
-                                    <span className="peak-badge">⚡ Peak Load</span>
+                                    <span className="peak-badge">Peak Load</span>
                                 ) : s.recommended_staff >= 6 ? (
-                                    <span style={{ color: 'var(--accent-amber)' }}>🟡 High</span>
+                                    <span style={{ color: 'var(--accent-amber)' }}>High</span>
                                 ) : (
-                                    <span style={{ color: 'var(--accent-emerald)' }}>🟢 Normal</span>
+                                    <span style={{ color: 'var(--accent-emerald)' }}>Normal</span>
                                 )}
                             </td>
                         </tr>

@@ -40,7 +40,6 @@ export default function WhatIfSimulator() {
         <div className="card">
             <div className="section-header" style={{ marginBottom: 14 }}>
                 <h3 className="section-title">
-                    <span className="section-icon">🧪</span>
                     What-If Simulation
                 </h3>
             </div>
@@ -49,14 +48,25 @@ export default function WhatIfSimulator() {
                 <div className="grid-4" style={{ marginBottom: 16 }}>
                     <div className="form-group">
                         <label className="form-label">Airline</label>
-                        <input
-                            className="form-input"
+                        <select
+                            className="form-select"
                             name="airline"
-                            placeholder="e.g. Air India"
                             value={form.airline}
                             onChange={handleChange}
                             required
-                        />
+                        >
+                            <option value="">Select airline</option>
+                            <option value="Air India">Air India</option>
+                            <option value="IndiGo">IndiGo</option>
+                            <option value="SpiceJet">SpiceJet</option>
+                            <option value="Vistara">Vistara</option>
+                            <option value="GoAir">GoAir</option>
+                            <option value="AirAsia India">AirAsia India</option>
+                            <option value="Emirates">Emirates</option>
+                            <option value="Singapore Airlines">Singapore Airlines</option>
+                            <option value="Lufthansa">Lufthansa</option>
+                            <option value="British Airways">British Airways</option>
+                        </select>
                     </div>
                     <div className="form-group">
                         <label className="form-label">Passengers</label>
@@ -94,18 +104,18 @@ export default function WhatIfSimulator() {
                     </div>
                 </div>
                 <button className="btn btn-primary" type="submit" disabled={loading}>
-                    {loading ? <><span className="spinner"></span> Simulating...</> : '🚀 Run Simulation'}
+                    {loading ? <><span className="spinner"></span> Simulating...</> : 'Run Simulation'}
                 </button>
             </form>
 
-            {error && <div className="alert alert-error" style={{ marginTop: 14 }}>❌ {error}</div>}
+            {error && <div className="alert alert-error" style={{ marginTop: 14 }}>{error}</div>}
 
             {result && (
                 <div style={{ marginTop: 20 }}>
                     <h4 style={{ marginBottom: 12, color: 'var(--text-secondary)', fontSize: 14 }}>Simulated Forecast (with new flight)</h4>
                     <PredictionChart predictions={result.simulated_predictions} />
                     <div className="impact-box">
-                        💡 <strong>Impact:</strong> {result.impact_summary}
+                        <strong>Impact:</strong> {result.impact_summary}
                     </div>
                 </div>
             )}

@@ -6,23 +6,44 @@ export default function HistoricalAnalysis() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [availableRange, setAvailableRange] = useState(null);
 
     useEffect(() => {
         loadData();
     }, []);
 
-    const loadData = async () => {
+    const loadData = async (start, end) => {
         setLoading(true);
+        setError('');
         try {
-            const res = await getHistoricalAnalysis();
+            const res = await getHistoricalAnalysis(start, end);
             setData(res.data);
+            if (res.data.available_range && !availableRange) {
+                setAvailableRange(res.data.available_range);
+                if (!start) setStartDate(res.data.available_range.start);
+                if (!end) setEndDate(res.data.available_range.end);
+            }
         } catch (err) {
             setError(err.response?.data?.detail || 'Failed to load analysis');
         }
         setLoading(false);
     };
 
-    if (loading) {
+    const handleFilter = () => {
+        loadData(startDate, endDate);
+    };
+
+    const handleReset = () => {
+        if (availableRange) {
+            setStartDate(availableRange.start);
+            setEndDate(availableRange.end);
+            loadData(availableRange.start, availableRange.end);
+        }
+    };
+
+    if (loading && !data) {
         return (
             <div className="loading-overlay">
                 <span className="spinner"></span> Loading historical analysis...
@@ -30,8 +51,8 @@ export default function HistoricalAnalysis() {
         );
     }
 
-    if (error) {
-        return <div className="alert alert-error">❌ {error}</div>;
+    if (error && !data) {
+        return <div className="alert alert-error">{error}</div>;
     }
 
     if (!data) return null;
@@ -40,8 +61,48 @@ export default function HistoricalAnalysis() {
 
     return (
         <div>
+            {/* Date Range Filter */}
+            <div className="card" style={{ marginBottom: 16, padding: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                        Date Range:
+                    </span>
+                    <input
+                        type="date"
+                        className="form-input"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        min={availableRange?.start}
+                        max={availableRange?.end}
+                        style={{ width: 160 }}
+                    />
+                    <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>to</span>
+                    <input
+                        type="date"
+                        className="form-input"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        min={availableRange?.start}
+                        max={availableRange?.end}
+                        style={{ width: 160 }}
+                    />
+                    <button className="btn btn-primary" onClick={handleFilter} disabled={loading}>
+                        {loading ? <span className="spinner"></span> : 'Apply'}
+                    </button>
+                    <button className="btn btn-secondary" onClick={handleReset} disabled={loading}>
+                        Reset
+                    </button>
+                    {availableRange && (
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                            Available: {availableRange.start} to {availableRange.end}
+                        </span>
+                    )}
+                </div>
+                {error && <div className="alert alert-error" style={{ marginTop: 10, marginBottom: 0 }}>{error}</div>}
+            </div>
+
             {/* Summary Stats */}
-            <div className="grid-4" style={{ marginBottom: 24 }}>
+            <div className="grid-4" style={{ marginBottom: 16 }}>
                 <div className="stat-card">
                     <span className="stat-label">Data Coverage</span>
                     <span className="stat-value indigo">{summary.total_days}</span>
@@ -64,7 +125,7 @@ export default function HistoricalAnalysis() {
                 </div>
             </div>
 
-            <div className="grid-4" style={{ marginBottom: 24 }}>
+            <div className="grid-4" style={{ marginBottom: 16 }}>
                 <div className="stat-card">
                     <span className="stat-label">Busiest Hour</span>
                     <span className="stat-value emerald">{summary.busiest_hour}:00</span>
@@ -88,9 +149,8 @@ export default function HistoricalAnalysis() {
             </div>
 
             {/* Hourly Pattern Chart */}
-            <div className="card" style={{ marginBottom: 20 }}>
+            <div className="card" style={{ marginBottom: 16 }}>
                 <h3 className="section-title" style={{ marginBottom: 14 }}>
-                    <span className="section-icon">⏰</span>
                     Hourly Crowd Pattern (Average)
                 </h3>
                 <Plot
@@ -100,21 +160,20 @@ export default function HistoricalAnalysis() {
                         type: 'bar',
                         marker: {
                             color: hourly_pattern.map((h) =>
-                                h.avg_entries > 60 ? '#ec4899' : h.avg_entries > 30 ? '#f59e0b' : '#6366f1'
+                                h.avg_entries > 60 ? '#dc2626' : h.avg_entries > 30 ? '#d97706' : '#4f46e5'
                             ),
-                            line: { color: 'rgba(255,255,255,0.1)', width: 1 },
                         },
                         name: 'Avg Entries',
                     }]}
                     layout={{
                         autosize: true,
-                        height: 280,
-                        margin: { l: 45, r: 15, t: 10, b: 45 },
+                        height: 260,
+                        margin: { l: 40, r: 10, t: 10, b: 40 },
                         paper_bgcolor: 'transparent',
                         plot_bgcolor: 'transparent',
-                        font: { family: 'Inter', color: '#94a3b8' },
-                        xaxis: { title: 'Hour of Day', gridcolor: 'rgba(255,255,255,0.04)' },
-                        yaxis: { title: 'Avg Entries', gridcolor: 'rgba(255,255,255,0.04)', rangemode: 'tozero' },
+                        font: { family: 'Inter', color: '#5f6577' },
+                        xaxis: { title: 'Hour of Day', gridcolor: '#eef0f4', titlefont: { size: 11, color: '#8c91a1' } },
+                        yaxis: { title: 'Avg Entries', gridcolor: '#eef0f4', rangemode: 'tozero', titlefont: { size: 11, color: '#8c91a1' } },
                         showlegend: false,
                     }}
                     config={{ displayModeBar: false, responsive: true }}
@@ -123,12 +182,10 @@ export default function HistoricalAnalysis() {
                 />
             </div>
 
-            {/* Daily Pattern + Daily Trend side by side */}
-            <div className="grid-2" style={{ marginBottom: 20 }}>
-                {/* Weekly Pattern */}
+            {/* Weekly Pattern + Daily Trend */}
+            <div className="grid-2" style={{ marginBottom: 16 }}>
                 <div className="card">
                     <h3 className="section-title" style={{ marginBottom: 14 }}>
-                        <span className="section-icon">📅</span>
                         Weekly Pattern
                     </h3>
                     <Plot
@@ -138,20 +195,20 @@ export default function HistoricalAnalysis() {
                             type: 'bar',
                             marker: {
                                 color: daily_pattern.map((d, i) =>
-                                    i >= 5 ? '#ec4899' : '#6366f1'
+                                    i >= 5 ? '#dc2626' : '#4f46e5'
                                 ),
                             },
                             name: 'Avg Entries',
                         }]}
                         layout={{
                             autosize: true,
-                            height: 240,
-                            margin: { l: 40, r: 10, t: 10, b: 35 },
+                            height: 220,
+                            margin: { l: 35, r: 10, t: 10, b: 30 },
                             paper_bgcolor: 'transparent',
                             plot_bgcolor: 'transparent',
-                            font: { family: 'Inter', color: '#94a3b8', size: 11 },
-                            xaxis: { gridcolor: 'rgba(255,255,255,0.04)' },
-                            yaxis: { gridcolor: 'rgba(255,255,255,0.04)', rangemode: 'tozero' },
+                            font: { family: 'Inter', color: '#5f6577', size: 11 },
+                            xaxis: { gridcolor: '#eef0f4' },
+                            yaxis: { gridcolor: '#eef0f4', rangemode: 'tozero' },
                             showlegend: false,
                         }}
                         config={{ displayModeBar: false, responsive: true }}
@@ -159,14 +216,12 @@ export default function HistoricalAnalysis() {
                         style={{ width: '100%' }}
                     />
                     <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8, textAlign: 'center' }}>
-                        🟣 Weekday &nbsp;&nbsp; 🩷 Weekend
+                        Indigo: Weekday, Red: Weekend
                     </div>
                 </div>
 
-                {/* Daily Trend */}
                 <div className="card">
                     <h3 className="section-title" style={{ marginBottom: 14 }}>
-                        <span className="section-icon">📈</span>
                         Daily Total Trend
                     </h3>
                     <Plot
@@ -176,20 +231,20 @@ export default function HistoricalAnalysis() {
                             type: 'scatter',
                             mode: 'lines+markers',
                             fill: 'tozeroy',
-                            fillcolor: 'rgba(99,102,241,0.08)',
-                            line: { color: '#6366f1', width: 2, shape: 'spline' },
-                            marker: { size: 5, color: '#818cf8' },
+                            fillcolor: 'rgba(79,70,229,0.06)',
+                            line: { color: '#4f46e5', width: 2, shape: 'spline' },
+                            marker: { size: 4, color: '#4f46e5' },
                             name: 'Total Entries',
                         }]}
                         layout={{
                             autosize: true,
-                            height: 240,
-                            margin: { l: 40, r: 10, t: 10, b: 35 },
+                            height: 220,
+                            margin: { l: 35, r: 10, t: 10, b: 30 },
                             paper_bgcolor: 'transparent',
                             plot_bgcolor: 'transparent',
-                            font: { family: 'Inter', color: '#94a3b8', size: 10 },
-                            xaxis: { gridcolor: 'rgba(255,255,255,0.04)', tickangle: -45 },
-                            yaxis: { gridcolor: 'rgba(255,255,255,0.04)', rangemode: 'tozero' },
+                            font: { family: 'Inter', color: '#5f6577', size: 10 },
+                            xaxis: { gridcolor: '#eef0f4', tickangle: -45 },
+                            yaxis: { gridcolor: '#eef0f4', rangemode: 'tozero' },
                             showlegend: false,
                         }}
                         config={{ displayModeBar: false, responsive: true }}
@@ -199,13 +254,11 @@ export default function HistoricalAnalysis() {
                 </div>
             </div>
 
-            {/* Peak Records & Airline Stats side by side */}
-            <div className="grid-2" style={{ marginBottom: 20 }}>
-                {/* Top 5 Peak Records */}
+            {/* Peak Records & Airline Stats */}
+            <div className="grid-2" style={{ marginBottom: 16 }}>
                 <div className="card">
                     <h3 className="section-title" style={{ marginBottom: 14 }}>
-                        <span className="section-icon">🔥</span>
-                        Top 5 Busiest Hours (All Time)
+                        Top 5 Busiest Hours
                     </h3>
                     <table className="data-table">
                         <thead>
@@ -218,7 +271,7 @@ export default function HistoricalAnalysis() {
                         <tbody>
                             {peak_records.map((p, i) => (
                                 <tr key={i} className={i === 0 ? 'peak-row' : ''}>
-                                    <td>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}</td>
+                                    <td>{i === 0 ? '1st' : i === 1 ? '2nd' : i === 2 ? '3rd' : `#${i + 1}`}</td>
                                     <td>{p.timestamp}</td>
                                     <td><strong>{p.entries}</strong></td>
                                 </tr>
@@ -227,10 +280,8 @@ export default function HistoricalAnalysis() {
                     </table>
                 </div>
 
-                {/* Airline Stats */}
                 <div className="card">
                     <h3 className="section-title" style={{ marginBottom: 14 }}>
-                        <span className="section-icon">🛩️</span>
                         Airline Statistics
                     </h3>
                     {airline_stats.length > 0 ? (
@@ -256,7 +307,7 @@ export default function HistoricalAnalysis() {
                         </table>
                     ) : (
                         <div className="empty-state" style={{ padding: 20 }}>
-                            <div className="empty-state-text">No flight data uploaded yet</div>
+                            <div className="empty-state-text">No flight data for selected range</div>
                         </div>
                     )}
                 </div>

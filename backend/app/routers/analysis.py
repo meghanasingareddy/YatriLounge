@@ -1,5 +1,6 @@
 """Historical data analysis API routes."""
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import date
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -9,10 +10,14 @@ router = APIRouter(prefix="/api/analysis", tags=["Historical Analysis"])
 
 
 @router.get("/historical")
-async def get_historical_analysis(db: Session = Depends(get_db)):
-    """Get comprehensive historical data analysis."""
+async def get_historical_analysis(
+    start_date: date = Query(None, description="Filter from this date (YYYY-MM-DD)"),
+    end_date: date = Query(None, description="Filter up to this date (YYYY-MM-DD)"),
+    db: Session = Depends(get_db),
+):
+    """Get comprehensive historical data analysis, optionally filtered by date range."""
     try:
-        analysis = analyze_historical_data(db)
+        analysis = analyze_historical_data(db, start_date=start_date, end_date=end_date)
         return analysis
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -19,12 +19,12 @@ export default function PredictionChart({ predictions }) {
             text: `⭐ Peak: ${Math.round(c[pi])}`,
             showarrow: true,
             arrowhead: 2,
-            arrowcolor: '#ec4899',
-            font: { color: '#ec4899', size: 13, family: 'Inter' },
-            bgcolor: 'rgba(236,72,153,0.12)',
-            bordercolor: '#ec4899',
-            borderpad: 5,
-            ay: -40,
+            arrowcolor: '#dc2626',
+            font: { color: '#dc2626', size: 12, family: 'Inter' },
+            bgcolor: '#fef2f2',
+            bordercolor: '#dc2626',
+            borderpad: 4,
+            ay: -35,
         }] : [];
 
         return { hours: h, crowds: c, peakIndex: pi, annotations: ann };
@@ -42,7 +42,7 @@ export default function PredictionChart({ predictions }) {
     }
 
     const markerColors = predictions.map((p) =>
-        p.is_peak ? '#ec4899' : '#6366f1'
+        p.is_peak ? '#dc2626' : '#4f46e5'
     );
 
     return (
@@ -55,35 +55,35 @@ export default function PredictionChart({ predictions }) {
                         type: 'scatter',
                         mode: 'lines+markers',
                         fill: 'tozeroy',
-                        fillcolor: 'rgba(99,102,241,0.08)',
+                        fillcolor: 'rgba(79,70,229,0.06)',
                         line: {
-                            color: '#6366f1',
-                            width: 3,
+                            color: '#4f46e5',
+                            width: 2.5,
                             shape: 'spline',
                         },
                         marker: {
                             color: markerColors,
-                            size: 10,
-                            line: { color: '#1a1f35', width: 2 },
+                            size: 8,
+                            line: { color: '#ffffff', width: 2 },
                         },
                         name: 'Predicted Crowd',
                     },
                 ]}
                 layout={{
                     autosize: true,
-                    height: 340,
-                    margin: { l: 50, r: 20, t: 20, b: 50 },
+                    height: 300,
+                    margin: { l: 45, r: 15, t: 15, b: 45 },
                     paper_bgcolor: 'transparent',
                     plot_bgcolor: 'transparent',
-                    font: { family: 'Inter', color: '#94a3b8' },
+                    font: { family: 'Inter', color: '#5f6577' },
                     xaxis: {
-                        title: { text: 'Hour', font: { size: 12 } },
-                        gridcolor: 'rgba(255,255,255,0.04)',
+                        title: { text: 'Hour', font: { size: 11, color: '#8c91a1' } },
+                        gridcolor: '#eef0f4',
                         tickfont: { size: 11 },
                     },
                     yaxis: {
-                        title: { text: 'Crowd Level', font: { size: 12 } },
-                        gridcolor: 'rgba(255,255,255,0.04)',
+                        title: { text: 'Crowd Level', font: { size: 11, color: '#8c91a1' } },
+                        gridcolor: '#eef0f4',
                         tickfont: { size: 11 },
                         rangemode: 'tozero',
                     },

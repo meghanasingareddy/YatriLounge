@@ -28,6 +28,8 @@ export default function App() {
     const [alert, setAlert] = useState(null);
     const [flightsUploaded, setFlightsUploaded] = useState(false);
     const [loungeUploaded, setLoungeUploaded] = useState(false);
+    const [forecastTime, setForecastTime] = useState('');
+    const [forecastLoading, setForecastLoading] = useState(false);
 
     const refreshIntervalRef = useRef(null);
 
@@ -58,7 +60,7 @@ export default function App() {
         try {
             await trainModel();
             setModelTrained(true);
-            showAlert('success', '🎉 Model trained successfully! Loading predictions...');
+            showAlert('success', 'Model trained successfully! Loading predictions...');
             await loadDashboardData();
         } catch (err) {
             showAlert('error', err.response?.data?.detail || 'Training failed');
@@ -70,7 +72,7 @@ export default function App() {
         setRefreshing(true);
         await loadDashboardData();
         setRefreshing(false);
-        showAlert('success', '🔄 Dashboard refreshed with latest predictions');
+        showAlert('success', 'Dashboard refreshed with latest predictions');
     };
 
     const handleFlightUpload = async (file) => {
@@ -83,6 +85,44 @@ export default function App() {
         const res = await uploadLoungeEntries(file);
         setLoungeUploaded(true);
         return res;
+    };
+
+    const handleCustomForecast = async () => {
+        if (!forecastTime) return;
+        setForecastLoading(true);
+        try {
+            const [forecastRes, staffRes, menuRes] = await Promise.all([
+                getForecast(forecastTime),
+                getStaffing(),
+                getMenu(),
+            ]);
+            setForecast(forecastRes.data);
+            setStaffing(staffRes.data);
+            setMenu(menuRes.data);
+            showAlert('success', `Showing forecast from ${new Date(forecastTime).toLocaleString()}`);
+        } catch (err) {
+            showAlert('error', err.response?.data?.detail || 'Forecast failed');
+        }
+        setForecastLoading(false);
+    };
+
+    const handleResetForecast = async () => {
+        setForecastTime('');
+        setForecastLoading(true);
+        try {
+            const [forecastRes, staffRes, menuRes] = await Promise.all([
+                getForecast(),
+                getStaffing(),
+                getMenu(),
+            ]);
+            setForecast(forecastRes.data);
+            setStaffing(staffRes.data);
+            setMenu(menuRes.data);
+            showAlert('success', 'Showing forecast from current time');
+        } catch (err) {
+            console.error(err);
+        }
+        setForecastLoading(false);
     };
 
     // Auto-refresh every 60 seconds when model is trained
@@ -119,19 +159,16 @@ export default function App() {
                     <section className="section" id="upload-section">
                         <div className="section-header">
                             <h2 className="section-title">
-                                <span className="section-icon">📤</span>
                                 Step 1: Upload Data
                             </h2>
                         </div>
                         <div className="grid-2">
                             <FileUpload
                                 label="Flight Schedule"
-                                icon="🛫"
                                 onUpload={handleFlightUpload}
                             />
                             <FileUpload
                                 label="Lounge Entries"
-                                icon="🏢"
                                 onUpload={handleLoungeUpload}
                             />
                         </div>
@@ -143,14 +180,13 @@ export default function App() {
                     <section className="section" id="train-section">
                         <div className="section-header">
                             <h2 className="section-title">
-                                <span className="section-icon">🧠</span>
                                 Step 2: Train Prediction Model
                             </h2>
                         </div>
                         <div className="card" style={{ textAlign: 'center', padding: '40px 20px' }}>
                             {!canTrain ? (
                                 <div className="empty-state" style={{ padding: 0 }}>
-                                    <div className="empty-state-icon">⬆️</div>
+                                    <div className="empty-state-text" style={{ fontSize: 16, marginBottom: 8 }}>—</div>
                                     <div className="empty-state-text">
                                         Upload both CSV files above to enable model training
                                     </div>
@@ -169,7 +205,7 @@ export default function App() {
                                         {training ? (
                                             <><span className="spinner"></span> Training Model...</>
                                         ) : (
-                                            '🚀 Train & Predict'
+                                            'Train & Predict'
                                         )}
                                     </button>
                                 </>
@@ -185,7 +221,6 @@ export default function App() {
                         <section className="section" id="metrics-section">
                             <div className="section-header">
                                 <h2 className="section-title">
-                                    <span className="section-icon">📈</span>
                                     Model Performance & Key Metrics
                                 </h2>
                             </div>
@@ -196,9 +231,39 @@ export default function App() {
                         <section className="section" id="prediction-section">
                             <div className="section-header">
                                 <h2 className="section-title">
-                                    <span className="section-icon">📊</span>
                                     6-Hour Crowd Forecast
                                 </h2>
+                            </div>
+                            <div className="card" style={{ marginBottom: 14, padding: 14 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                                        Forecast from:
+                                    </span>
+                                    <input
+                                        type="datetime-local"
+                                        className="form-input"
+                                        value={forecastTime}
+                                        onChange={(e) => setForecastTime(e.target.value)}
+                                        style={{ width: 220 }}
+                                    />
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={handleCustomForecast}
+                                        disabled={!forecastTime || forecastLoading}
+                                    >
+                                        {forecastLoading ? <span className="spinner"></span> : 'Apply'}
+                                    </button>
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={handleResetForecast}
+                                        disabled={forecastLoading}
+                                    >
+                                        Now
+                                    </button>
+                                    <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                                        Pick a date and time to see that period's 6-hour forecast
+                                    </span>
+                                </div>
                             </div>
                             {forecast ? (
                                 <PredictionChart predictions={forecast.predictions} />
@@ -221,8 +286,7 @@ export default function App() {
                         <section className="section" id="simulation-section">
                             <div className="section-header">
                                 <h2 className="section-title">
-                                    <span className="section-icon">🧪</span>
-                                    Advanced: What-If Simulation
+                                    What-If Simulation
                                 </h2>
                             </div>
                             <WhatIfSimulator />
@@ -232,7 +296,6 @@ export default function App() {
                         <section className="section" id="historical-section">
                             <div className="section-header">
                                 <h2 className="section-title">
-                                    <span className="section-icon">📜</span>
                                     Historical Data Analysis
                                 </h2>
                             </div>

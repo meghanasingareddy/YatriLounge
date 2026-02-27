@@ -50,7 +50,7 @@ export default function FileUpload({ label, icon, accept, onUpload }) {
                     onChange={onChange}
                     style={{ display: 'none' }}
                 />
-                <div className="upload-icon">{icon || '📁'}</div>
+                <div className="upload-icon">{icon || ''}</div>
                 <div className="upload-text">
                     <strong>Drop {label} CSV here</strong> or click to browse
                 </div>
@@ -62,7 +62,7 @@ export default function FileUpload({ label, icon, accept, onUpload }) {
             </label>
             {message && (
                 <div className={`alert ${status === 'success' ? 'alert-success' : status === 'error' ? 'alert-error' : 'alert-info'}`} style={{ marginTop: 10 }}>
-                    {status === 'success' ? '✅' : status === 'error' ? '❌' : 'ℹ️'} {message}
+                    {status === 'success' ? 'Done:' : status === 'error' ? 'Error:' : ''} {message}
                 </div>
             )}
         </div>

@@ -26,7 +26,11 @@ export const uploadLoungeEntries = (file) => {
 
 // ===== Predictions =====
 export const trainModel = () => api.post('/predict/train');
-export const getForecast = () => api.get('/predict/forecast');
+export const getForecast = (startTime) => {
+    const params = {};
+    if (startTime) params.start_time = startTime;
+    return api.get('/predict/forecast', { params });
+};
 export const getMetrics = () => api.get('/predict/metrics');
 
 // ===== Recommendations =====
@@ -42,6 +46,11 @@ export const exportPDF = () =>
     api.get('/export/pdf', { responseType: 'blob' });
 
 // ===== Historical Analysis =====
-export const getHistoricalAnalysis = () => api.get('/analysis/historical');
+export const getHistoricalAnalysis = (startDate, endDate) => {
+    const params = {};
+    if (startDate) params.start_date = startDate;
+    if (endDate) params.end_date = endDate;
+    return api.get('/analysis/historical', { params });
+};
 
 export default api;
